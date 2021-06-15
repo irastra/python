@@ -11,18 +11,23 @@ def ij2iindex(i, j, col):
 
 
 def GetTBN(pos1, u1, v1, pos2, u2, v2, pos3, u3, v3):
-    dU1 = (u1 - u2).Mol()
-    dU2 = (u1 - u3).Mol()
-    dV1 = (v1 - v2).Mol()
-    dV2 = (v1 - v3).Mol()
+    dU1 = (u2 - u1)
+    dU2 = (u3 - u1)
+    dV1 = (v2 - v1)
+    dV2 = (v3 - v1)
     dPos1 = pos2 - pos1
     dPos2 = pos3 - pos1
-    mat1 = Matrix([dPos1, dPos2], 2, 1)
+
+    mat1 = Matrix([dPos1.x, dPos2.x, dPos1.y, dPos2.y, dPos1.z, dPos2.z], 3, 2)
     mat2 = Matrix([dU1, dV1, dU2, dV2], 2, 2)
     res = mat1 * mat2.Inverse()
-    u = res.getAt(0, 0)
-    v = res.getAt(1, 0)
-    return u.normalize(), v.normalize()
+    u = Vector3(res.GetAt(0, 0), res.GetAt(1, 0), res.GetAt(2, 0))
+    v = Vector3(res.GetAt(0, 1), res.GetAt(1, 1), res.GetAt(2, 1))
+    n = u.Cross(v)
+    u.normalize()
+    v.normalize()
+    n.normalize() 
+    return u, v, n
 
 
 class Vector3(object):
@@ -57,7 +62,7 @@ class Vector3(object):
         )
 
     def Mol(self):
-        math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
 
     def normalize(self):
         mol = self.Mol()
@@ -204,6 +209,7 @@ class Matrix(object):
         r_c = m.c
         kk = self.c
         m_result = Matrix.MakeEmpty(r_r, r_c)
+        #print self.r, " ", self.c, " ", m.r, " ", m.c
         for i in xrange(r_r):
             for j in xrange(r_c):
                 for k in xrange(kk):
@@ -231,11 +237,16 @@ class Matrix(object):
         return result
 
 
-lookAt = Matrix.MakeLookAt(Vector3(1, 1, 1), Vector3(1, 1, 2), Vector3(0, 1, 0))
+#lookAt = Matrix.MakeLookAt(Vector3(1, 1, 1), Vector3(1, 1, 2), Vector3(0, 1, 0))
 #(Vector3(1, 1, 1).MulMatrix(lookAt)).Show()
 
 t = Matrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1], 4, 4)
-t.Inverse().Show()
+#t.Inverse().Show()
 
 mat = Matrix([1, 0, 0, 0, 1, 0, 0, 0, 1], 3, 3)
-mat.Inverse().Show()
+#mat.Inverse().Show()
+
+t, b, n = GetTBN(Vector3(0, 0, 0), 0, 0, Vector3(0.5, 1, 0), 0.5, 1, Vector3(1, 0, 0), 1, 0)
+t.Show()
+b.Show()
+n.Show()
